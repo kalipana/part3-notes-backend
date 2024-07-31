@@ -93,13 +93,11 @@ app.put('/api/persons/:id', (request, response) => {
   const id = Number(request.params.id)
   const new_person = request.body
   new_person.id = id
-  console.log(new_person)
   for (var i = 0; i < persons.length; i++) {
     if (persons[i].id === id) {
       persons[i] = new_person
     }
   }
-  console.log(persons)
   response.json(new_person)
 })
 
