@@ -1,21 +1,16 @@
 const express = require('express')
 const app = express()
 
-let notes = [
+let persons = [
   {
-    id: 1,
-    content: "HTML is easy",
-    important: true
+    "id": 1,
+    "name": "hello",
+    "number": "123"
   },
   {
-    id: 2,
-    content: "Browser can execute only JavaScript",
-    important: false
-  },
-  {
-    id: 3,
-    content: "GET and POST are the most important methods of HTTP protocol",
-    important: true
+    "id": 2,
+    "name": "Arto Hellas",
+    "number": "2039489"
   }
 ]
 
@@ -44,53 +39,68 @@ app.get('/', (request, response) => {
   response.send('<h1>Hello World!</h1>')
 })
 
-app.get('/api/notes', (request, response) => {
-  response.json(notes)
+app.get('/api/persons', (request, response) => {
+  response.json(persons)
 })
 
 const generateId = () => {
-  const maxId = notes.length > 0
-    ? Math.max(...notes.map(n => n.id))
+  const maxId = persons.length > 0
+    ? Math.max(...persons.map(n => n.id))
     : 0
   return maxId + 1
 }
 
-app.post('/api/notes', (request, response) => {
+app.post('/api/persons', (request, response) => {
   const body = request.body
 
-  if (!body.content) {
+  if (!body.name || !body.number) {
     return response.status(400).json({ 
       error: 'content missing' 
     })
   }
 
-  const note = {
-    content: body.content,
-    important: body.important || false,
+  const person = {
+    name: body.name,
+    number: body.number,
     id: generateId(),
   }
 
-  notes = notes.concat(note)
+  persons = persons.concat(person)
 
-  response.json(note)
+  response.json(person)
 })
 
-app.get('/api/notes/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response) => {
   const id = Number(request.params.id)
-  const note = notes.find(note => note.id === id)
-  if (note) {
-    response.json(note)
+  const person = persons.find(p => p.id === id)
+  if (person) {
+    response.json(person)
   } else {
     console.log('x')
     response.status(404).end()
   }
 })
 
-app.delete('/api/notes/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response) => {
   const id = Number(request.params.id)
-  notes = notes.filter(note => note.id !== id)
+  person = persons.find(p => p.id === id)
+  persons = persons.filter(p => p.id !== id)
 
-  response.status(204).end()
+  response.json(person)
+})
+
+app.put('/api/persons/:id', (request, response) => {
+  const id = Number(request.params.id)
+  const new_person = request.body
+  new_person.id = id
+  console.log(new_person)
+  for (var i = 0; i < persons.length; i++) {
+    if (persons[i].id === id) {
+      persons[i] = new_person
+    }
+  }
+  console.log(persons)
+  response.json(new_person)
 })
 
 app.use(unknownEndpoint)
