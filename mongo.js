@@ -8,33 +8,36 @@ if (process.argv.length<3) {
 const password = process.argv[2]
 
 const url =
-  `mongodb+srv://kalipana:${password}@cluster0.uigcrsi.mongodb.net/noteApp?retryWrites=true&w=majority`
+  `mongodb+srv://kalipana:${password}@cluster0.uigcrsi.mongodb.net/phoneBook?retryWrites=true&w=majority`
 
 mongoose.set('strictQuery',false)
 
 mongoose.connect(url)
 
-const noteSchema = new mongoose.Schema({
-  content: String,
-  important: Boolean,
+const personSchema = new mongoose.Schema({
+  name: String,
+  number: String,
 })
 
 
-const Note = mongoose.model('Note', noteSchema)
+const Person = mongoose.model('Person', personSchema)
 
-Note.find({important:true}).then(result => {
-    result.forEach(note => {
-      console.log(note)
+if (process.argv.length > 3) {
+    const person = new Person({
+        name:process.argv[3],
+        number:process.argv[4],
+    })
+    person.save().then(result => {
+      console.log(`Added ${person.name} number ${person.number} to phonebook`)
+      mongoose.connection.close()
+    })
+
+} else {
+  console.log("phonebook:")
+  Person.find({}).then(result => {
+    result.forEach(person => {
+      console.log(`${person.name} ${person.number}`)
     })
     mongoose.connection.close()
   })
-
-// const note = new Note({
-//   content: 'HTML is easy',
-//   important: true,
-// })
-
-// note.save().then(result => {
-//   console.log('note saved!')
-//   mongoose.connection.close()
-// })
+}
