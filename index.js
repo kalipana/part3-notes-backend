@@ -38,22 +38,11 @@ const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
 
-app.get('/', (request, response) => {
-  response.send('<h1>Hello World!</h1>')
-})
-
 app.get('/api/persons', (request, response) => {
   Person.find({}).then(persons => {
     response.json(persons)
   })
 })
-
-const generateId = () => {
-  const maxId = persons.length > 0
-    ? Math.max(...persons.map(n => n.id))
-    : 0
-  return maxId + 1
-}
 
 app.post('/api/persons', (request, response) => {
   const body = request.body
@@ -72,40 +61,46 @@ app.post('/api/persons', (request, response) => {
   })
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id).then(person => {
     if (person) {
       response.json(person)
     } else {
       response.status(404).end()
     }
-  }).catch(error => {
-    console.log(error)
-    response.status(400).send({ error: 'malformatted id'})
-  })
+  }).catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  person = persons.find(p => p.id === id)
-  persons = persons.filter(p => p.id !== id)
-
-  response.json(person)
+  Person.findByIdAndDelete(request.params.id)
+    .then(person => {
+      response.json(person)
+    })
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const new_person = request.body
-  new_person.id = id
-  for (var i = 0; i < persons.length; i++) {
-    if (persons[i].id === id) {
-      persons[i] = new_person
-    }
-  }
-  response.json(new_person)
+  Person.findByIdAndUpdate(request.params.id, request.body, { new: true })
+    .then(newPerson => {
+      response.json(newPerson)
+    })
+    .catch(error => next(error))
 })
 
 app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+
+  next(error)
+}
+
+// this has to be the last loaded middleware, also all the routes should be registered before this!
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
