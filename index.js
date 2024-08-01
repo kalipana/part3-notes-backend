@@ -1,21 +1,11 @@
 const express = require('express')
 const app = express()
-const mongoose = require('mongoose')
 
-const password = process.argv[2]
+const Person = require('./models/person')
 
-// DO NOT SAVE YOUR PASSWORD TO GITHUB!!
 require('dotenv').config()
-const url = process.env.MONGODB_URI
-mongoose.set('strictQuery',false)
-mongoose.connect(url)
 
-const personSchema = new mongoose.Schema({
-  name: String,
-  number: String,
-})
-
-const Person = mongoose.model('Person', personSchema)
+app.use(express.static('dist'))
 
 let persons = [
   {
@@ -30,8 +20,6 @@ let persons = [
   }
 ]
 
-app.use(express.static('dist'))
-
 const requestLogger = (request, response, next) => {
   console.log('Method:', request.method)
   console.log('Path:  ', request.path)
@@ -41,7 +29,6 @@ const requestLogger = (request, response, next) => {
 }
 
 const cors = require('cors')
-
 app.use(cors())
 
 app.use(express.json())
@@ -71,32 +58,31 @@ const generateId = () => {
 app.post('/api/persons', (request, response) => {
   const body = request.body
 
-  if (!body.name || !body.number) {
-    return response.status(400).json({ 
-      error: 'content missing' 
-    })
+  if (body.name === undefined || body.number === undefined) {
+    return response.status(400).json({ error: 'content missing' })
   }
 
-  const person = {
+  const person = new Person({
     name: body.name,
     number: body.number,
-    id: generateId(),
-  }
+  })
 
-  persons = persons.concat(person)
-
-  response.json(person)
+  person.save().then(savedPerson => {
+    response.json(savedPerson)
+  })
 })
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const person = persons.find(p => p.id === id)
-  if (person) {
-    response.json(person)
-  } else {
-    console.log('x')
-    response.status(404).end()
-  }
+  Person.findById(request.params.id).then(person => {
+    if (person) {
+      response.json(person)
+    } else {
+      response.status(404).end()
+    }
+  }).catch(error => {
+    console.log(error)
+    response.status(400).send({ error: 'malformatted id'})
+  })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -121,7 +107,7 @@ app.put('/api/persons/:id', (request, response) => {
 
 app.use(unknownEndpoint)
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
