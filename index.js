@@ -53,7 +53,6 @@ app.post('/api/persons', (request, response, next) => {
   })
 
   person.save().then(savedPerson => {
-    console.log("saving person")
     response.json(savedPerson)
   })
   .catch(error => next(error))
@@ -79,7 +78,6 @@ app.delete('/api/persons/:id', (request, response) => {
 
 app.put('/api/persons/:id', (request, response, next) => {
   const { name, number } = request.body
-
   Person.findByIdAndUpdate(
     request.params.id, 
     { name, number }, 
