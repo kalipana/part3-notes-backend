@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js",
     "start": "node index.js",
-    "build:ui": "rm -rf dist && cd ../full_stack_open/part2/phonebook && npm run build && cp -r dist ../../../part3-notes-backend",
+    "build:ui": "rm -rf dist && cd ../full_stack_open/part2/phonebook && npm run build && cp -r dist ../../../part3-phonebook-backend",
     "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push"
   },
   "author": "",
