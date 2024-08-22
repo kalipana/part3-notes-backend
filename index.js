@@ -7,19 +7,6 @@ require('dotenv').config()
 
 app.use(express.static('dist'))
 
-let persons = [
-  {
-    "id": 1,
-    "name": "hello",
-    "number": "123"
-  },
-  {
-    "id": 2,
-    "name": "Arto Hellas",
-    "number": "2039489"
-  }
-]
-
 const requestLogger = (request, response, next) => {
   console.log('Method:', request.method)
   console.log('Path:  ', request.path)
@@ -55,7 +42,7 @@ app.post('/api/persons', (request, response, next) => {
   person.save().then(savedPerson => {
     response.json(savedPerson)
   })
-  .catch(error => next(error))
+    .catch(error => next(error))
 })
 
 app.get('/api/persons/:id', (request, response, next) => {
@@ -68,7 +55,7 @@ app.get('/api/persons/:id', (request, response, next) => {
   }).catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
     .then(person => {
       response.json(person)
@@ -79,8 +66,8 @@ app.delete('/api/persons/:id', (request, response) => {
 app.put('/api/persons/:id', (request, response, next) => {
   const { name, number } = request.body
   Person.findByIdAndUpdate(
-    request.params.id, 
-    { name, number }, 
+    request.params.id,
+    { name, number },
     { new: true, runValidators: true, context: 'query' })
     .then(newPerson => {
       response.json(newPerson)
